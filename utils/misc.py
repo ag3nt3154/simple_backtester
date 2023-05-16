@@ -60,3 +60,5 @@ def get_attr(args, key=None, default_value=None):
         return args[key] if key in args else default_value
     elif isinstance(args, object):
         return getattr(args, key, default_value) if key is not None else default_value
+    
+

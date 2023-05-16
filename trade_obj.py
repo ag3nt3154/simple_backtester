@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 class trade:
     def __init__(self, entry_date, entry_price, quantity):
@@ -66,7 +67,7 @@ class tradeList:
             'num_wins': len(self.win_list),
             'num_loss': len(self.loss_list),
             'win_rate': len(self.win_list) / (len(self.win_list) + len(self.loss_list)),
-            'profit': self.records['profit'].sum(),
+            'profit_total': self.records['profit'].sum(),
             'profit_mean': self.records['profit'].mean(),
             'returns_mean': self.records['returns'].mean(),
             'returns_std': self.records['returns'].std(),
@@ -88,3 +89,41 @@ class tradeList:
         self.records = pd.DataFrame.from_dict(self.records)
         self.win_records = pd.DataFrame.from_dict(self.win_records)
         self.loss_records = pd.DataFrame.from_dict(self.loss_records)
+
+
+    def plot_graphs(self):
+        fig, axs = plt.subplots(3, 2, figsize=(16, 14))
+        axs[0, 0].hist(self.records['returns'], bins=50)
+        axs[0, 0].set_title('Returns')
+        # axs[0, 0].legend()
+
+        axs[0, 1].hist(self.win_records['returns'], bins=50, label='win')
+        axs[0, 1].hist(self.loss_records['returns'], bins=50, label='loss')
+        axs[0, 1].set_title('Returns')
+        axs[0, 1].legend()
+
+
+        axs[1, 0].hist(self.records['time_in_trade'], bins=50)
+        axs[1, 0].set_title('Time in trade')
+        # axs[1, 0].legend()
+
+        axs[1, 1].hist(self.win_records['time_in_trade'], bins=50, label='win')
+        axs[1, 1].hist(self.loss_records['time_in_trade'], bins=50, label='loss')
+        axs[1, 1].set_title('Time in trade')
+        axs[1, 1].legend()
+
+
+        axs[2, 0].hist(self.records['entry_date'], bins=50)
+        axs[2, 0].set_title('Entry date')
+        # axs[2, 0].legend()
+
+        axs[2, 1].hist(self.win_records['entry_date'], bins=50, label='win')
+        axs[2, 1].hist(self.loss_records['entry_date'], bins=50, label='loss')
+        axs[2, 1].set_title('Entry date')
+        axs[2, 1].legend()
+
+
+        
+    
+
+    

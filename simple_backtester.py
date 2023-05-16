@@ -131,32 +131,76 @@ class backTester:
             print('end')
 
 
-    def results_analysis(self):
-        self.results = pd.DataFrame.from_dict(self.record)
-        self.results['date'] = self.date
-        self.results = self.results.set_index('date')
-        self.results['returns'] = self.results['portfolio_value'].pct_change()
-        self.results['cum_returns'] = (self.results['portfolio_value'] 
-                                              / self.results['portfolio_value'][0])
-        self.results['drawdown'] = self.results['cum_returns'] - self.results['cum_returns'].cummax()
+    def analyse(self):
+        self.records = pd.DataFrame.from_dict(self.record)
+        self.records['date'] = self.date
+        self.records = self.records.set_index('date')
+        self.records['returns'] = self.records['portfolio_value'].pct_change()
+        self.records['cum_returns'] = (self.records['portfolio_value'] 
+                                              / self.records['portfolio_value'][0])
+        self.records['drawdown'] = (self.records['cum_returns'] - self.records['cum_returns'].cummax())/self.records['cum_returns'].cummax()
+        self.records['buy_hold_returns'] = self.df['adjclose'].pct_change()
+        self.records['buy_hold_cum_returns'] = self.adjclose / self.adjclose[0]
+        self.records['buy_hold_drawdown'] = (self.records['buy_hold_cum_returns'] - self.records['buy_hold_cum_returns'].cummax())/self.records['buy_hold_cum_returns'].cummax()
+        
         self.time_period = (self.date[-1] - self.date[0]).days
-        self.annual_return = self.results['cum_returns'][-1] ** (365/self.time_period)
+        self.annual_return = self.records['cum_returns'][-1] ** (365.25/self.time_period) - 1
+        self.annual_vol = self.records['returns'].std() * np.sqrt(252)
+        
+        self.buy_hold_annual_return = self.records['buy_hold_cum_returns'][-1] ** (365.25/self.time_period) - 1
+        self.buy_hold_annual_vol = self.records['buy_hold_returns'].std() * np.sqrt(252)
         print(f'Annualised return: {self.annual_return}')
-        print(f"Sharpe ratio:      {self.annual_return / (self.results['returns'].std() * np.sqrt(252))}")
-        # analysis by trades
-        self.trade_record.analyse()
-        print(self.trade_record.stats)
+        print(f'buy_hold annual return: {self.buy_hold_annual_return}')
+        print(f'Annualised vol: {self.annual_vol}')
+        print(f'buy_hold annual vol: {self.buy_hold_annual_vol}')
+        print(f'Sharpe ratio: {self.annual_return / self.annual_vol}')
+        print(f'buy_hold Sharpe ratio: {self.buy_hold_annual_return / self.buy_hold_annual_vol}')
+        
+        
 
         
 
 
     def plot_graphs(self):
-        fig, axs = plt.subplots(2, 2, figsize=(16, 14))
-        axs[0, 0].plot(self.results['cum_returns'])
+        fig, axs = plt.subplots(4, 2, figsize=(16, 14))
+        axs[0, 0].plot(self.records['cum_returns'], label='strategy')
         axs[0, 0].set_title('Cumulative returns')
-        axs[0, 1].hist(self.results['returns'], bins=30)
-        axs[0, 1].set_title('Daily returns')
-        axs[1, 0].hist(self.trade_record.records['time_in_trade'])
-        axs[1, 0].set_title('Time_in_trade')
-        axs[1, 1].plot(self.results['drawdown'])
-        axs[1, 1].set_title('Drawdown')
+        axs[0, 0].legend()
+
+        axs[0, 1].plot(self.records['buy_hold_cum_returns'], label='buy_hold', color='C1')
+        axs[0, 1].plot(self.records['cum_returns'], label='strategy')
+        axs[0, 1].set_title('Cumulative returns')
+        axs[0, 1].legend()
+
+        axs[1, 0].hist(self.records['returns'], bins=50, label='strategy')
+        axs[1, 0].set_title('Daily returns')
+        axs[1, 0].legend()
+
+        axs[1, 1].hist(self.records['buy_hold_returns'], bins=50, label='buy_hold', color='C1')
+        axs[1, 1].hist(self.records['returns'], bins=50, label='strategy')
+        axs[1, 1].set_title('Daily returns')
+        axs[1, 1].legend()
+        
+
+        axs[2, 0].plot(self.records['drawdown'], label='strategy')
+        axs[2, 0].set_title('Drawdown')
+        axs[2, 0].legend()
+
+        axs[2, 1].plot(self.records['buy_hold_drawdown'], label='buy_hold', color='C1')
+        axs[2, 1].plot(self.records['drawdown'], label='strategy')
+        axs[2, 1].set_title('Drawdown')
+        axs[2, 1].legend()
+
+        axs[3, 0].hist(self.records['drawdown'], label='strategy', bins=50)
+        axs[3, 0].set_title('Drawdown')
+        axs[3, 0].legend()
+
+        axs[3, 1].hist(self.records['buy_hold_drawdown'], label='buy_hold', color='C1', bins=50)
+        axs[3, 1].hist(self.records['drawdown'], label='strategy', bins=50)
+        axs[3, 1].set_title('Drawdown')
+        axs[3, 1].legend()
+
+
+
+
+
