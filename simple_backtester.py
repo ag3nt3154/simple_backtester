@@ -149,16 +149,11 @@ class backTester:
         
         self.buy_hold_annual_return = self.records['buy_hold_cum_returns'][-1] ** (365.25/self.time_period) - 1
         self.buy_hold_annual_vol = self.records['buy_hold_returns'].std() * np.sqrt(252)
-        print(f'Annualised return: {self.annual_return}')
-        print(f'buy_hold annual return: {self.buy_hold_annual_return}')
-        print(f'Annualised vol: {self.annual_vol}')
-        print(f'buy_hold annual vol: {self.buy_hold_annual_vol}')
-        print(f'Sharpe ratio: {self.annual_return / self.annual_vol}')
-        print(f'buy_hold Sharpe ratio: {self.buy_hold_annual_return / self.buy_hold_annual_vol}')
-        
-        
 
+        self.sharpe = self.annual_return / self.annual_vol
+        self.buy_hold_sharpe = self.buy_hold_annual_return / self.buy_hold_annual_vol
         
+         
 
 
     def plot_graphs(self):
