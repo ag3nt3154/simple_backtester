@@ -62,3 +62,12 @@ def get_attr(args, key=None, default_value=None):
         return getattr(args, key, default_value) if key is not None else default_value
     
 
+def annualise_returns(total_return, num_days=None, num_trading_days=None):
+    '''
+    Calculate annualised returns from total_return
+    '''
+    assert num_days != None or num_trading_days != None, 'Time period required'
+    if num_days != None:
+        return total_return ** (365.25 / num_days)
+    else:
+        return total_return ** (252 / num_trading_days)

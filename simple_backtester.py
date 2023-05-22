@@ -144,10 +144,10 @@ class backTester:
         self.records['buy_hold_drawdown'] = (self.records['buy_hold_cum_returns'] - self.records['buy_hold_cum_returns'].cummax())/self.records['buy_hold_cum_returns'].cummax()
         
         self.time_period = (self.date[-1] - self.date[0]).days
-        self.annual_return = self.records['cum_returns'][-1] ** (365.25/self.time_period) - 1
+        self.annual_return = misc.annualise_returns(self.records['cum_returns'][-1], self.time_period) - 1
         self.annual_vol = self.records['returns'].std() * np.sqrt(252)
         
-        self.buy_hold_annual_return = self.records['buy_hold_cum_returns'][-1] ** (365.25/self.time_period) - 1
+        self.buy_hold_annual_return = misc.annualise_returns(self.records['buy_hold_cum_returns'][-1], self.time_period) - 1
         self.buy_hold_annual_vol = self.records['buy_hold_returns'].std() * np.sqrt(252)
 
         self.sharpe = self.annual_return / self.annual_vol
