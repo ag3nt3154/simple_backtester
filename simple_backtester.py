@@ -33,7 +33,7 @@ class backTester:
         self.portfolio_return = 1
         self.end = False
         self.current_step = 0
-        self.open_trade = None
+        self.open_trades = []
 
         # record all instantaneous values of state
         self.record = {
@@ -70,31 +70,34 @@ class backTester:
 
 
 
-    def take_action(self, order_quantity=0, order_price=0, order_type='market_on_close'):
+    def take_action(self, order_quantity=0, order_price=0, **kwargs):
         execution_price = 0
         execution_quantity = 0
-        # price at which to evaluate position
-        evaluation_price = self.adjclose[self.current_step]
+        
+
+        open_trades = misc.get_attr(kwargs, 'open_trades', True)
+
         if order_quantity == 0:
             pass
         else:
-            # execute based on order type
-            if order_type == 'market_on_close':
-                execution_price = self.adjclose[self.current_step]
-                execution_quantity = order_quantity
+            # execute based on order
+            execution_price = order_price
+            execution_quantity = order_quantity
             
             if self.mode == 'trading':
                 # record trades
-                if self.open_trade == None:
+                if len(self.open_trades) == 0:
                     assert self.position == 0, 'no open trades but position != 0'
+                if open_trades:
                     # opening new trade
                     cost_basis = execution_price + self.per_volume_fees + (self.per_order_fees / execution_quantity)
-                    self.open_trade = trade(self.date[self.current_step], cost_basis, execution_quantity)
+                    self.open_trades.append(trade(self.date[self.current_step], cost_basis, execution_quantity))
                 else:
                     # close trade
-                    self.open_trade.close(self.date[self.current_step], execution_price)
-                    self.trade_record.append(self.open_trade)
-                    self.open_trade = None
+                    for t in self.open_trades:
+                        t.close(self.date[self.current_step], execution_price)
+                        self.trade_record.append(t)
+                    self.open_trades = []
 
             elif self.mode == 'portfolio_optimisation':
                 pass
@@ -105,7 +108,7 @@ class backTester:
             self.cash -= (self.per_order_fees + self.per_volume_fees * execution_quantity)
 
         # calculate new trader state
-        self.position_value = self.position * evaluation_price
+        self.position_value = self.position * self.close[self.current_step]
         self.portfolio_value = self.cash + self.position_value
         self.leverage = abs(self.position_value / self.portfolio_value)
 
