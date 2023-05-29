@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import yahoo_fin.stock_info as si
+import numpy as np
 
 
 def get_price_data(ticker):
@@ -62,7 +63,7 @@ def get_attr(args, key=None, default_value=None):
         return getattr(args, key, default_value) if key is not None else default_value
     
 
-def annualise_returns(total_return, num_days=None, num_trading_days=None):
+def get_annualised_returns(total_return, num_days=None, num_trading_days=None):
     '''
     Calculate annualised returns from total_return
     '''
@@ -71,3 +72,10 @@ def annualise_returns(total_return, num_days=None, num_trading_days=None):
         return total_return ** (365.25 / num_days)
     else:
         return total_return ** (252 / num_trading_days)
+    
+
+def get_annualised_vol(returns_arr):
+    '''
+    Calculate annualised vol from returns
+    '''
+    return np.std(returns_arr) * np.sqrt(252)
