@@ -70,12 +70,11 @@ class backTester:
 
 
 
-    def take_action(self, order_quantity=0, order_price=0, **kwargs):
+    def take_action(self, order_quantity=0, order_price=0, open_trade=True):
         execution_price = 0
         execution_quantity = 0
         
-
-        open_trades = misc.get_attr(kwargs, 'open_trades', True)
+        
 
         if order_quantity == 0:
             pass
@@ -83,30 +82,29 @@ class backTester:
             # execute based on order
             execution_price = order_price
             execution_quantity = order_quantity
+            fees = self.per_order_fees + self.per_volume_fees * abs(execution_quantity)
+
+            self.position += execution_quantity
+            self.cash -= (execution_price * execution_quantity + fees)
             
             if self.mode == 'trading':
                 # record trades
-                if len(self.open_trades) == 0:
-                    assert self.position == 0, 'no open trades but position != 0'
-                if open_trades:
+                if open_trade:
                     # opening new trade
-                    cost_basis = execution_price + self.per_volume_fees + (self.per_order_fees / execution_quantity)
-                    self.open_trades.append(trade(self.date[self.current_step], cost_basis, execution_quantity))
+                    print(f'opening trade {self.date[self.current_step], execution_price, execution_quantity}')
+                    
+                    self.open_trades.append(trade(self.date[self.current_step], execution_price, execution_quantity, fees))
                 else:
                     # close trade
                     for t in self.open_trades:
                         t.close(self.date[self.current_step], execution_price)
+                        print(f'closing trade {t.exit_date, t.exit_price, t.quantity}')
                         self.trade_record.append(t)
                     self.open_trades = []
 
             elif self.mode == 'portfolio_optimisation':
                 pass
                 
-            
-            self.position += execution_quantity
-            self.cash -= (execution_price * execution_quantity)
-            self.cash -= (self.per_order_fees + self.per_volume_fees * execution_quantity)
-
         # calculate new trader state
         self.position_value = self.position * self.close[self.current_step]
         self.portfolio_value = self.cash + self.position_value

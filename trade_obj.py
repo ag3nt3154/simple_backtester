@@ -3,15 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class trade:
-    def __init__(self, entry_date, entry_price, quantity):
+    def __init__(self, entry_date, entry_price, quantity, fees):
         self.entry_date = entry_date
         self.entry_price = entry_price
         self.quantity = quantity
+        self.fees = fees
         self.is_open = True
-        if quantity > 0:
-            self.is_long = True
-        else:
-            self.is_long = False
     
     def close(self, exit_date, exit_price):
         self.exit_date = exit_date
@@ -19,7 +16,7 @@ class trade:
         self.is_open = False
 
     def calculate_stats(self):
-        self.profit = self.quantity * (self.exit_price - self.entry_price)
+        self.profit = self.quantity * (self.exit_price - self.entry_price) - self.fees
         self.returns = self.profit / abs(self.entry_price * self.quantity)
         self.time_in_trade = self.exit_date - self.entry_date
         self.capital_at_risk = abs(self.entry_price) * self.quantity
