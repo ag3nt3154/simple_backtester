@@ -9,7 +9,6 @@ class backTester:
         self.df = None
         self.initial_capital = misc.get_attr(kwargs, 'initial_capital', 1E6)
         self.reward_function = misc.get_attr(kwargs, 'reward_function', None)
-        self.mode = misc.get_attr(kwargs, 'mode', 'trading')
         self.per_order_fees = misc.get_attr(kwargs, 'per_order_fees', 0)
         self.per_volume_fees = misc.get_attr(kwargs, 'per_volume_fees', 0)
         
@@ -33,7 +32,6 @@ class backTester:
         self.portfolio_return = 1
         self.end = False
         self.current_step = 0
-        self.open_trades = []
 
         # record all instantaneous values of state
         self.record = {
@@ -43,9 +41,6 @@ class backTester:
             'portfolio_value': [],
             'leverage': [],
         }
-
-        # record all trades
-        self.trade_record = tradeList()
 
         # instantaneous state of the trader
         self.trader_state = np.array([
@@ -70,7 +65,7 @@ class backTester:
 
 
 
-    def take_action(self, order_quantity=0, order_price=0, open_trade=True):
+    def take_action(self, order_quantity=0, order_price=0):
         execution_price = 0
         execution_quantity = 0
         
@@ -87,23 +82,6 @@ class backTester:
             self.position += execution_quantity
             self.cash -= (execution_price * execution_quantity + fees)
             
-            if self.mode == 'trading':
-                # record trades
-                if open_trade:
-                    # opening new trade
-                    print(f'opening trade {self.date[self.current_step], execution_price, execution_quantity}')
-                    
-                    self.open_trades.append(trade(self.date[self.current_step], execution_price, execution_quantity, fees))
-                else:
-                    # close trade
-                    for t in self.open_trades:
-                        t.close(self.date[self.current_step], execution_price)
-                        print(f'closing trade {t.exit_date, t.exit_price, t.quantity}')
-                        self.trade_record.append(t)
-                    self.open_trades = []
-
-            elif self.mode == 'portfolio_optimisation':
-                pass
                 
         # calculate new trader state
         self.position_value = self.position * self.close[self.current_step]

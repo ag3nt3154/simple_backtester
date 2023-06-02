@@ -3,23 +3,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class trade:
-    def __init__(self, entry_date, entry_price, quantity, fees):
+    def __init__(self, entry_date, entry_price, quantity, fees=0, type=None):
         self.entry_date = entry_date
         self.entry_price = entry_price
         self.quantity = quantity
         self.fees = fees
         self.is_open = True
+        self.type = type
     
     def close(self, exit_date, exit_price):
         self.exit_date = exit_date
         self.exit_price = exit_price
         self.is_open = False
 
-    def calculate_stats(self):
+    def calculate_stats(self, df):
         self.profit = self.quantity * (self.exit_price - self.entry_price) - self.fees
         self.returns = self.profit / abs(self.entry_price * self.quantity)
         self.time_in_trade = self.exit_date - self.entry_date
         self.capital_at_risk = abs(self.entry_price) * self.quantity
+        
+        mask = (df.index >= self.entry_date) & (df.index <= self.exit_date)
+        self.df = df.loc[mask]
         # max drawdown
         # potential profit
 
@@ -42,16 +46,17 @@ def generate_record(trade_list):
 
 class tradeList:
     def __init__(self):
+        self.open_trades = []
         self.list = []
 
     def append(self, trade):
         self.list.append(trade)
 
-    def analyse(self):
+    def analyse(self, df):
         self.list = [f for f in self.list if f.is_open==False]
 
         for trade in self.list:
-            trade.calculate_stats()
+            trade.calculate_stats(df)
         
         self.win_list = [f for f in self.list if f.profit > 0]
         self.loss_list = [f for f in self.list if f.profit <= 0]
