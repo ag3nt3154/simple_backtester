@@ -4,26 +4,40 @@ import matplotlib.pyplot as plt
 
 class trade:
     def __init__(self, entry_date, entry_price, quantity, fees=0, type=None):
-        self.entry_date = entry_date
-        self.entry_price = entry_price
+        self.entry_date = [entry_date]
+        self.entry_price = [entry_price]
         self.quantity = quantity
         self.fees = fees
         self.is_open = True
         self.type = type
+        self.cost = entry_price * quantity
+        self.cost_basis = self.cost / quantity
+        # print(self.entry_price, self.cost_basis, self.cost)
     
+
+    def add(self, entry_date, entry_price, quantity, fees=0):
+        self.entry_date.append(entry_date)
+        self.entry_price.append(entry_price)
+        self.cost += entry_price * quantity
+        self.quantity += quantity
+        self.cost_basis = self.cost / self.quantity
+        
+
     def close(self, exit_date, exit_price):
         self.exit_date = exit_date
         self.exit_price = exit_price
         self.is_open = False
 
+
     def calculate_stats(self, df):
-        self.profit = self.quantity * (self.exit_price - self.entry_price) - self.fees
-        self.returns = self.profit / abs(self.entry_price * self.quantity)
-        self.time_in_trade = self.exit_date - self.entry_date
-        self.capital_at_risk = abs(self.entry_price) * self.quantity
+        self.profit = self.quantity * (self.exit_price - self.cost_basis) - self.fees
+        self.returns = self.profit / abs(self.cost)
+        self.time_in_trade = self.exit_date - self.entry_date[0]
+        self.capital_at_risk = abs(self.cost)
         
-        mask = (df.index >= self.entry_date) & (df.index <= self.exit_date)
+        mask = (df.index >= self.entry_date[0]) & (df.index <= self.exit_date)
         self.df = df.loc[mask]
+        
         # max drawdown
         # potential profit
 
@@ -33,7 +47,7 @@ def generate_record(trade_list):
         'profit': np.array([f.profit for f in trade_list]),
         'returns': np.array([f.returns for f  in trade_list]),
         'time_in_trade': np.array([f.time_in_trade.days for f in trade_list]),
-        'entry_date': np.array([f.entry_date for f in trade_list]),
+        'entry_date': np.array([f.entry_date[0] for f in trade_list]),
         'exit_date': np.array([f.exit_date for f in trade_list]),
         'quantity': np.array([f.quantity for f in trade_list]),
         'capital_at_risk': np.array([f.capital_at_risk for f in trade_list])
@@ -43,10 +57,14 @@ def generate_record(trade_list):
     return df
 
 
+class fakeTrade:
+    def __init__(self, quantity):
+        self.type = 'fake'
+        self.quantity = quantity
+
 
 class tradeList:
     def __init__(self):
-        self.open_trades = []
         self.list = []
 
     def append(self, trade):
@@ -95,37 +113,38 @@ class tradeList:
 
     def plot_graphs(self):
         fig, axs = plt.subplots(3, 2, figsize=(16, 14))
-        axs[0, 0].hist(self.records['returns'], bins=50)
+        axs[0, 0].hist(self.records['returns'], bins=20)
         axs[0, 0].set_title('Returns')
         # axs[0, 0].legend()
 
-        axs[0, 1].hist(self.win_records['returns'], bins=50, label='win')
-        axs[0, 1].hist(self.loss_records['returns'], bins=50, label='loss')
+        axs[0, 1].hist(self.win_records['returns'], bins=20, label='win')
+        axs[0, 1].hist(self.loss_records['returns'], bins=20, label='loss')
         axs[0, 1].set_title('Returns')
         axs[0, 1].legend()
 
 
-        axs[1, 0].hist(self.records['time_in_trade'], bins=50)
+        axs[1, 0].hist(self.records['time_in_trade'], bins=20)
         axs[1, 0].set_title('Time in trade')
         # axs[1, 0].legend()
 
-        axs[1, 1].hist(self.win_records['time_in_trade'], bins=50, label='win')
-        axs[1, 1].hist(self.loss_records['time_in_trade'], bins=50, label='loss')
+        axs[1, 1].hist(self.win_records['time_in_trade'], bins=20, label='win')
+        axs[1, 1].hist(self.loss_records['time_in_trade'], bins=20, label='loss')
         axs[1, 1].set_title('Time in trade')
         axs[1, 1].legend()
 
 
-        axs[2, 0].hist(self.records['entry_date'], bins=50)
+        axs[2, 0].hist(self.records['entry_date'], bins=20)
         axs[2, 0].set_title('Entry date')
         # axs[2, 0].legend()
 
-        axs[2, 1].hist(self.win_records['entry_date'], bins=50, label='win')
-        axs[2, 1].hist(self.loss_records['entry_date'], bins=50, label='loss')
+        axs[2, 1].hist(self.win_records['entry_date'], bins=20, label='win')
+        axs[2, 1].hist(self.loss_records['entry_date'], bins=20, label='loss')
         axs[2, 1].set_title('Entry date')
         axs[2, 1].legend()
 
 
         
     
+
 
     
