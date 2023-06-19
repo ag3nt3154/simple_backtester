@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from utils.misc import *
 
 class trade:
     def __init__(self, entry_date, entry_price, quantity, fees=0, type=None):
@@ -40,6 +41,8 @@ class trade:
         
         # max drawdown
         # potential profit
+    
+
 
 
 def generate_record(trade_list):
@@ -57,10 +60,7 @@ def generate_record(trade_list):
     return df
 
 
-class fakeTrade:
-    def __init__(self, quantity):
-        self.type = 'fake'
-        self.quantity = quantity
+
 
 
 class tradeList:
@@ -141,6 +141,41 @@ class tradeList:
         axs[2, 1].hist(self.loss_records['entry_date'], bins=20, label='loss')
         axs[2, 1].set_title('Entry date')
         axs[2, 1].legend()
+
+
+
+    def plot_all_trades(self):
+        for i in range(len(self.list)):
+            t = self.list[i]
+
+            print(f'trade {i}')
+            print(f'entry: {t.entry_price}')
+            print(f'cost_basis: {t.cost_basis}')
+            print(f'exit: {t.exit_price}')
+            print(f'returns: {t.returns}')
+            
+            
+            plot_candle(t.df)
+            print(len(t.df))
+            
+            plt.plot(t.df['stop_loss'], color='C1')
+            plt.scatter(t.df.index, t.df['entry_price'], marker='^', color='black')
+            plt.scatter(t.df.index, t.df['exit_price'], marker='v', color='black')
+            plt.show()
+    
+    
+    def plot_time_period(self, df, start_datetime, end_datetime):
+        mask = (df.index >= start_datetime) & (df.index <= end_datetime)
+        df1 = df.loc[mask]
+            
+        plt.figure(figsize=(15,10)) 
+        plot_candle(df1)
+
+        plt.plot(df1['stop_loss'], color='C1')
+        plt.scatter(df1.index, df1['entry_price'], marker='^', color='black')
+        plt.scatter(df1.index, df1['exit_price'], marker='^', color='black')
+        plt.show()
+
 
 
         

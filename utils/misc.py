@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 import yahoo_fin.stock_info as si
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def get_price_data(ticker):
@@ -79,3 +80,34 @@ def get_annualised_vol(returns_arr):
     Calculate annualised vol from returns
     '''
     return np.std(returns_arr) * np.sqrt(252)
+
+
+def plot_candle(df, show=False):
+    #define width of candlestick elements
+    width = .4
+    width2 = .05
+
+    #define up and down t.df
+    up = df[df.close>=df.open].copy()
+    down = df[df.close<df.open].copy()
+
+    #define colors to use
+    col1 = 'green'
+    col2 = 'red'
+
+    #plot up t.df
+    plt.bar(up.index,up.close-up.open,width,bottom=up.open,color=col1)
+    plt.bar(up.index,up.high-up.close,width2,bottom=up.close,color=col1)
+    plt.bar(up.index,up.low-up.open,width2,bottom=up.open,color=col1)
+
+    #plot down t.df
+    plt.bar(down.index,down.close-down.open,width,bottom=down.open,color=col2)
+    plt.bar(down.index,down.high-down.open,width2,bottom=down.open,color=col2)
+    plt.bar(down.index,down.low-down.close,width2,bottom=down.close,color=col2)
+
+    #rotate x-axis tick labels
+    plt.xticks(rotation=45, ha='right')
+
+    if show:
+        #display candlestick chart
+        plt.show()
